@@ -1,0 +1,38 @@
+#!/bin/bash
+set -euo pipefail
+
+declare -a DOCKER_ARGS=()
+declare -a OPENSCAD_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    arg="$1"
+    shift
+    
+    if [[ "$arg" == "-o" ]]; then
+        [[ $# -eq 0 ]] && { echo "Error: -o requires an argument" >&2; exit 1; }
+        touch "$1"
+        REAL_PATH=$(realpath "$1")
+        DOCKER_ARGS+=("-v" "${REAL_PATH}:${REAL_PATH}:rw")
+        OPENSCAD_ARGS+=("-o" "$REAL_PATH")
+        shift
+    elif [[ -f "$arg" ]]; then
+        REAL_PATH=$(realpath "$arg")
+        DOCKER_ARGS+=("-v" "${REAL_PATH}:${REAL_PATH}:ro")
+        OPENSCAD_ARGS+=("$REAL_PATH")
+    else
+        OPENSCAD_ARGS+=("$arg")
+    fi
+done
+
+# Mount git repo root if we're in a git repo
+GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -n "$GIT_ROOT" ]]; then
+    DOCKER_ARGS+=("-v" "${GIT_ROOT}:${GIT_ROOT}:ro")
+fi
+
+docker run --rm $([ -t 0 ] && echo "-it") \
+    -w "$(pwd)" \
+    "${DOCKER_ARGS[@]}" \
+    openscad/openscad:dev \
+    openscad "${OPENSCAD_ARGS[@]}" \
+    --backend="${OPENSCAD_BACKEND:-manifold}"

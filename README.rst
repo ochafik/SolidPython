@@ -49,6 +49,15 @@ the programming technique you're already familiar with. On the other hand it
 gives you a lot more power, because you can use all the comprehensive python
 libraries to generate your models.
 
+Faster OpenSCAD Rendering
+-------------------------
+
+OpenSCAD nightly builds are much faster than the last stable 4y old release.
+
+The easiest way to use it is through Docker using `./scripts/openscad`.
+
+Just `export PATH=$PWD/scripts:$PATH` and you should be good to go.
+
 
 Getting Started
 ---------------
